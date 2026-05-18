@@ -5,3 +5,4 @@ devenv.local.nix
 result
 result-*
 tests/_run/
+tests/_run_install/

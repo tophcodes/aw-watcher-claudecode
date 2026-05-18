@@ -30,19 +30,52 @@ event streams in the bucket instead of being merged.
 
 ## Install
 
-1. Pick an absolute path to this checkout (e.g.
-   `/home/you/Projects/aw-watcher-claudecode`).
-2. Merge `settings.example.json` into your Claude Code settings
-   (`~/.claude/settings.json` for global, or per-project
-   `.claude/settings.json`), adjusting the `command` paths.
-3. Ensure a local `aw-server` is reachable at
-   `http://127.0.0.1:5600` (default), or override:
-   ```
-   export AW_SERVER=http://other-host:5600
-   export AW_PULSETIME=120   # seconds; heartbeat merge window
-   ```
+```sh
+git clone https://github.com/tophcodes/aw-watcher-claudecode.git
+cd aw-watcher-claudecode
+./install.sh                 # → ~/.claude/settings.json
+```
+
+The installer uses `jq` to merge a hook fragment into your existing
+Claude Code settings, leaving everything else untouched. It is
+idempotent (re-running is a no-op) and always writes a timestamped
+backup before touching the file.
+
+Other scopes:
+
+```sh
+./install.sh --project .             # ./.claude/settings.json
+./install.sh --local .               # ./.claude/settings.local.json
+./install.sh --target /path/to.json  # explicit
+./install.sh --dry-run               # print merged JSON, don't write
+```
+
+Bake env vars into the hook commands so you don't have to set them
+in your shell (useful when `aw-server` isn't on localhost):
+
+```sh
+./install.sh --server http://aw.example.lan:5600 --pulsetime 60
+```
 
 The watcher creates its bucket on first event — no extra setup.
+
+Default server: `http://127.0.0.1:5600`. Default pulsetime: `120s`.
+
+### Uninstall
+
+```sh
+./uninstall.sh                       # → ~/.claude/settings.json
+./uninstall.sh --target /path/to.json
+```
+
+Removes only the entries that reference this checkout's `hooks/`
+scripts. Other hooks and settings stay put.
+
+### Manual install
+
+If you prefer not to run a script, merge `settings.example.json`
+into your settings.json yourself, replacing the absolute paths
+with your checkout location.
 
 ## Hooks
 
@@ -75,6 +108,15 @@ devenv up           # run aw-server on :5600
 ```
 
 ## Tests
+
+```sh
+./tests/install_test.sh    # jq merge logic + uninstall (no server needed)
+./tests/e2e.sh             # spins up aw-server, fires hooks, asserts via curl
+```
+
+`tests/install_test.sh` covers fresh install, existing-config
+preservation, idempotency, `--server`/`--pulsetime` env baking,
+`--dry-run`, uninstall, and backup creation.
 
 `tests/e2e.sh`:
 
