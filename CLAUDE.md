@@ -1,10 +1,5 @@
 # Dev
 
-```sh
-devenv shell        # bash, curl, jq, aw-server-rust
-devenv up           # aw-server on :5600
-```
-
 ## Tests
 
 ```sh
@@ -19,3 +14,5 @@ uninstall, backup creation.
 `tests/e2e.sh` spawns an isolated aw-server, pipes synthetic hook payloads,
 asserts bucket creation, field population, parallel-session distinctness, and
 heartbeat merging. Output: `[PASS]` / `[FAIL]` lines + sample event.
+
+`aw-server-rust` muss im PATH sein (z.B. `nix shell nixpkgs#aw-server-rust`).

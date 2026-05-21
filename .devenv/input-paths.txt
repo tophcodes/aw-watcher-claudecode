@@ -1,0 +1,7 @@
+/home/toph/Projects/aw-watcher-claudecode/.devenv/flake.json
+/home/toph/Projects/aw-watcher-claudecode/.devenv.flake.nix
+/home/toph/Projects/aw-watcher-claudecode/.env
+/home/toph/Projects/aw-watcher-claudecode/devenv.local.nix
+/home/toph/Projects/aw-watcher-claudecode/devenv.lock
+/home/toph/Projects/aw-watcher-claudecode/devenv.nix
+/home/toph/Projects/aw-watcher-claudecode/devenv.yaml
