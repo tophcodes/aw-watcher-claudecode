@@ -77,16 +77,24 @@ aw_detect_language() {
 }
 
 aw_detect_project() {
-  # Walk up looking for .git, return basename of repo root.
-  # Fallback: basename of starting dir.
+  # Walk up looking for .git. Return git remote origin URL if set,
+  # else absolute path of repo root. Fallback: absolute path of starting dir.
   local dir="$1"
-  local start="$dir"
+  local start
+  start="$(cd "$1" 2>/dev/null && pwd || echo "$1")"
+  dir="$start"
   while [ -n "$dir" ] && [ "$dir" != "/" ]; do
     if [ -e "$dir/.git" ]; then
-      basename "$dir"
+      local origin
+      origin="$(git -C "$dir" remote get-url origin 2>/dev/null || true)"
+      if [ -n "$origin" ]; then
+        echo "$origin"
+      else
+        echo "$dir"
+      fi
       return 0
     fi
     dir="$(dirname "$dir")"
   done
-  basename "$start"
+  echo "$start"
 }
