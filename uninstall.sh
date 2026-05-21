@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_DIR="${SCRIPT_DIR}/hooks"
+HOOK_DIR="${HOOK_DIR:-${SCRIPT_DIR}/hooks}"
 
 TARGET="${HOME}/.claude/settings.json"
 

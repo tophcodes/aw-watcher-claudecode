@@ -30,52 +30,80 @@ event streams in the bucket instead of being merged.
 
 ## Install
 
+### NixOS / home-manager (recommended)
+
+Add to your flake inputs and enable the module:
+
+```nix
+# flake.nix
+inputs.aw-watcher-claudecode.url = "github:tophcodes/aw-watcher-claudecode";
+
+# home.nix / your home-manager module
+{ inputs, ... }: {
+  imports = [ inputs.aw-watcher-claudecode.homeManagerModules.default ];
+
+  programs.aw-watcher-claudecode = {
+    enable = true;
+    # server = "http://127.0.0.1:5600";  # default
+    # pulsetime = 120;                   # default, in seconds
+  };
+}
+```
+
+`home-manager switch` deploys the hook scripts to a stable path under
+`~/.local/share/aw-watcher-claudecode/hooks/` and merges the hook
+entries into `~/.claude/settings.json`. Idempotent — re-switching is
+a no-op. The paths in settings.json are stable across store updates.
+
+### nix run (no clone needed)
+
+```sh
+nix run github:tophcodes/aw-watcher-claudecode             # → ~/.claude/settings.json
+nix run github:tophcodes/aw-watcher-claudecode -- --project .
+nix run github:tophcodes/aw-watcher-claudecode -- --dry-run
+nix run github:tophcodes/aw-watcher-claudecode -- --server http://aw.lan:5600 --pulsetime 60
+```
+
+Copies hooks to `~/.local/share/aw-watcher-claudecode/hooks/` (stable
+path) then merges entries into the target settings file.
+
+Uninstall:
+
+```sh
+nix run github:tophcodes/aw-watcher-claudecode#uninstall
+```
+
+### Manual (git clone)
+
 ```sh
 git clone https://github.com/tophcodes/aw-watcher-claudecode.git
 cd aw-watcher-claudecode
 ./install.sh                 # → ~/.claude/settings.json
-```
-
-The installer uses `jq` to merge a hook fragment into your existing
-Claude Code settings, leaving everything else untouched. It is
-idempotent (re-running is a no-op) and always writes a timestamped
-backup before touching the file.
-
-Other scopes:
-
-```sh
-./install.sh --project .             # ./.claude/settings.json
-./install.sh --local .               # ./.claude/settings.local.json
-./install.sh --target /path/to.json  # explicit
-./install.sh --dry-run               # print merged JSON, don't write
-```
-
-Bake env vars into the hook commands so you don't have to set them
-in your shell (useful when `aw-server` isn't on localhost):
-
-```sh
+./install.sh --project .     # ./.claude/settings.json
+./install.sh --local .       # ./.claude/settings.local.json
+./install.sh --target /path/to.json
+./install.sh --dry-run
 ./install.sh --server http://aw.example.lan:5600 --pulsetime 60
 ```
+
+Uninstall:
+
+```sh
+./uninstall.sh
+./uninstall.sh --target /path/to.json
+```
+
+Removes only the entries that reference this checkout's hooks.
+Other hooks and settings stay put.
 
 The watcher creates its bucket on first event — no extra setup.
 
 Default server: `http://127.0.0.1:5600`. Default pulsetime: `120s`.
 
-### Uninstall
+### Manual (no script)
 
-```sh
-./uninstall.sh                       # → ~/.claude/settings.json
-./uninstall.sh --target /path/to.json
-```
-
-Removes only the entries that reference this checkout's `hooks/`
-scripts. Other hooks and settings stay put.
-
-### Manual install
-
-If you prefer not to run a script, merge `settings.example.json`
-into your settings.json yourself, replacing the absolute paths
-with your checkout location.
+Merge `settings.example.json` into your settings.json, replacing
+the absolute paths with your actual hooks location.
 
 ## Hooks
 
@@ -102,7 +130,7 @@ Yes — the watcher is parallel-safe by design.
 ## Dev environment
 
 ```
-devenv shell        # bash, curl, jq, aw-server-rust
+nix develop         # or: direnv allow (uses flake devShell)
 devenv up           # run aw-server on :5600
 ./tests/e2e.sh      # end-to-end test (spins up isolated server on :5699)
 ```
