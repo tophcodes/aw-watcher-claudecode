@@ -1,15 +1,9 @@
 {
   description = "ActivityWatch watcher for Claude Code sessions";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-  outputs = inputs @ { self, nixpkgs, devenv }:
+  outputs = { self, nixpkgs }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAllSystems = f:
@@ -59,11 +53,16 @@
           };
         });
 
-      devShells = forAllSystems (system: pkgs: {
-        default = devenv.lib.mkShell {
-          inherit inputs pkgs;
-          modules = [ ./devenv.nix ];
-        };
+      checks = forAllSystems (system: pkgs: {
+        install-test = pkgs.runCommand "aw-watcher-claudecode-install-test"
+          { src = self; buildInputs = [ pkgs.bash pkgs.jq pkgs.coreutils ]; }
+          ''
+            cp -r $src src
+            chmod -R u+w src
+            cd src
+            bash tests/install_test.sh
+            touch $out
+          '';
       });
 
       homeManagerModules.default =
